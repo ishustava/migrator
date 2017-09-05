@@ -26,25 +26,25 @@ func ParseVarsStoreFile(path string) (*Credentials, error) {
 	for name, value := range varsStore {
 		passwordValue, ok := value.(string)
 		if ok {
-			creds.Passwords = append(creds.Passwords, MakePassword(name, passwordValue))
+			creds.Passwords = append(creds.Passwords, NewPassword(name, passwordValue))
 			continue
 		}
 
 		certificateValue, err := tryUnmarshalCertificate(value)
 		if err == nil {
-			creds.Certificates = append(creds.Certificates, MakeCertificate(name, certificateValue))
+			creds.Certificates = append(creds.Certificates, NewCertificate(name, certificateValue))
 			continue
 		}
 
 		sshValue, err := tryUnmarshalSsh(value)
 		if err == nil {
-			creds.SshKeys = append(creds.SshKeys, MakeSsh(name, sshValue))
+			creds.SshKeys = append(creds.SshKeys, NewSsh(name, sshValue))
 			continue
 		}
 
 		rsaValue, err := tryUnmarshalRsa(value)
 		if err == nil {
-			creds.RsaKeys = append(creds.RsaKeys, MakeRsa(name, rsaValue))
+			creds.RsaKeys = append(creds.RsaKeys, NewRsa(name, rsaValue))
 			continue
 		}
 	}

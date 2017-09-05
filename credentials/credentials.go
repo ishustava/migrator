@@ -12,7 +12,7 @@ type Credentials struct {
 	RsaKeys []RSA
 }
 
-func MakePassword(name, value string) Password {
+func NewPassword(name, value string) Password {
 	return Password{
 		Metadata: Metadata{
 			Base: Base{
@@ -24,7 +24,7 @@ func MakePassword(name, value string) Password {
 	}
 }
 
-func MakeCertificate(name string, certificate values.Certificate) Certificate {
+func NewCertificate(name string, certificate values.Certificate) Certificate {
 	return Certificate{
 		Metadata: Metadata{
 			Base: Base{
@@ -36,7 +36,7 @@ func MakeCertificate(name string, certificate values.Certificate) Certificate {
 	}
 }
 
-func MakeSsh(name string, ssh values.SSH) SSH {
+func NewSsh(name string, ssh values.SSH) SSH {
 	sshVal := SSH{
 		Metadata: Metadata{
 			Base: Base{
@@ -50,7 +50,7 @@ func MakeSsh(name string, ssh values.SSH) SSH {
 	return sshVal
 }
 
-func MakeRsa(name string, rsa values.RSA) RSA {
+func NewRsa(name string, rsa values.RSA) RSA {
 	return RSA{
 		Metadata: Metadata{
 			Base: Base{

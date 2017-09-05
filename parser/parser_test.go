@@ -13,8 +13,8 @@ var _ = Describe("Parser", func() {
 	Describe("#ParseVarsStoreFile", func() {
 		Context("Passwords", func() {
 			It("finds and returns password credentials", func() {
-				password1 := credentials.MakePassword("path1", "password1")
-				password2 := credentials.MakePassword("path2", "password2")
+				password1 := credentials.NewPassword("path1", "password1")
+				password2 := credentials.NewPassword("path2", "password2")
 
 				creds, err := parser.ParseVarsStoreFile("../test_fixtures/valid_creds.yml")
 
@@ -25,8 +25,8 @@ var _ = Describe("Parser", func() {
 
 		Context("Certificates", func() {
 			It("finds and returns certificate credentials", func() {
-				cert1 := credentials.MakeCertificate("path3", values.Certificate{Ca: CA1, Certificate: CERT1, PrivateKey: PRIV1})
-				cert2 := credentials.MakeCertificate("path4", values.Certificate{Certificate: CERT2, PrivateKey: PRIV2})
+				cert1 := credentials.NewCertificate("path3", values.Certificate{Ca: CA1, Certificate: CERT1, PrivateKey: PRIV1})
+				cert2 := credentials.NewCertificate("path4", values.Certificate{Certificate: CERT2, PrivateKey: PRIV2})
 
 				creds, err := parser.ParseVarsStoreFile("../test_fixtures/valid_creds.yml")
 
@@ -37,7 +37,7 @@ var _ = Describe("Parser", func() {
 
 		Context("SSH", func() {
 			It("finds and returns ssh credentials", func() {
-				ssh := credentials.MakeSsh("path5", values.SSH{PublicKey: SSH_PUB, PrivateKey: SSH_PRIV})
+				ssh := credentials.NewSsh("path5", values.SSH{PublicKey: SSH_PUB, PrivateKey: SSH_PRIV})
 
 				creds, err := parser.ParseVarsStoreFile("../test_fixtures/valid_creds.yml")
 
@@ -48,7 +48,7 @@ var _ = Describe("Parser", func() {
 
 		Context("RSA", func() {
 			It("finds and returns rsa credentials", func() {
-				rsa := credentials.MakeRsa("path6", values.RSA{PublicKey: RSA_PUB, PrivateKey: RSA_PRIV})
+				rsa := credentials.NewRsa("path6", values.RSA{PublicKey: RSA_PUB, PrivateKey: RSA_PRIV})
 
 				creds, err := parser.ParseVarsStoreFile("../test_fixtures/valid_creds.yml")
 
