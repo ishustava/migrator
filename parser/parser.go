@@ -1,14 +1,14 @@
-package migrator
+package parser
 
 import (
 	"io/ioutil"
 	"errors"
 	"gopkg.in/yaml.v2"
-	. "github.com/cloudfoundry-incubator/credhub-cli/credhub/credentials"
 	"github.com/cloudfoundry-incubator/credhub-cli/credhub/credentials/values"
+	. "github.com/ishustava/migrator/credentials"
 )
 
-func parseVarsStoreFile(path string) (*Credentials, error) {
+func ParseVarsStoreFile(path string) (*Credentials, error) {
 	creds := new(Credentials)
 
 	varsStoreYaml, err := ioutil.ReadFile(path)
@@ -26,25 +26,25 @@ func parseVarsStoreFile(path string) (*Credentials, error) {
 	for name, value := range varsStore {
 		passwordValue, ok := value.(string)
 		if ok {
-			creds.Passwords = append(creds.Passwords, makePassword(name, passwordValue))
+			creds.Passwords = append(creds.Passwords, MakePassword(name, passwordValue))
 			continue
 		}
 
 		certificateValue, err := tryUnmarshalCertificate(value)
 		if err == nil {
-			creds.Certificates = append(creds.Certificates, makeCertificate(name, certificateValue))
+			creds.Certificates = append(creds.Certificates, MakeCertificate(name, certificateValue))
 			continue
 		}
 
 		sshValue, err := tryUnmarshalSsh(value)
 		if err == nil {
-			creds.SshKeys = append(creds.SshKeys, makeSsh(name, sshValue))
+			creds.SshKeys = append(creds.SshKeys, MakeSsh(name, sshValue))
 			continue
 		}
 
 		rsaValue, err := tryUnmarshalRsa(value)
 		if err == nil {
-			creds.RsaKeys = append(creds.RsaKeys, makeRsa(name, rsaValue))
+			creds.RsaKeys = append(creds.RsaKeys, MakeRsa(name, rsaValue))
 			continue
 		}
 	}
@@ -87,52 +87,3 @@ func tryUnmarshalRsa(value interface{}) (values.RSA, error) {
 	return rsa, err
 }
 
-func makePassword(name, value string) Password {
-	return Password{
-		Metadata: Metadata{
-			Base: Base{
-				Name: name,
-			},
-			Type: "password",
-		},
-		Value: values.Password(value),
-	}
-}
-
-func makeCertificate(name string, certificate values.Certificate) Certificate {
-	return Certificate{
-		Metadata: Metadata{
-			Base: Base{
-				Name: name,
-			},
-			Type: "certificate",
-		},
-		Value: certificate,
-	}
-}
-
-func makeSsh(name string, ssh values.SSH) SSH {
-	sshVal := SSH{
-		Metadata: Metadata{
-			Base: Base{
-				Name: name,
-			},
-			Type: "ssh",
-		},
-	}
-	sshVal.Value.PublicKey = ssh.PublicKey
-	sshVal.Value.PrivateKey = ssh.PrivateKey
-	return sshVal
-}
-
-func makeRsa(name string, rsa values.RSA) RSA {
-	return RSA{
-		Metadata: Metadata{
-			Base: Base{
-				Name: name,
-			},
-			Type: "rsa",
-		},
-		Value: rsa,
-	}
-}
