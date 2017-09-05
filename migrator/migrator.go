@@ -35,6 +35,18 @@ func parseVarsStoreFile(path string) (*Credentials, error) {
 			creds.Certificates = append(creds.Certificates, makeCertificate(name, certificateValue))
 			continue
 		}
+
+		sshValue, err := tryUnmarshalSsh(value)
+		if err == nil {
+			creds.SshKeys = append(creds.SshKeys, makeSsh(name, sshValue))
+			continue
+		}
+
+		rsaValue, err := tryUnmarshalRsa(value)
+		if err == nil {
+			creds.RsaKeys = append(creds.RsaKeys, makeRsa(name, rsaValue))
+			continue
+		}
 	}
 
 	return creds, nil
@@ -44,9 +56,35 @@ func tryUnmarshalCertificate(value interface{}) (values.Certificate, error) {
 	certYaml, _ := yaml.Marshal(value)
 
 	certificate := values.Certificate{}
-	err := yaml.Unmarshal(certYaml, &certificate)
+	err := yaml.UnmarshalStrict(certYaml, &certificate)
 
 	return certificate, err
+}
+
+func tryUnmarshalSsh(value interface{}) (values.SSH, error) {
+	ssh := values.SSH{}
+
+	sshMap := value.(map[interface{}]interface{})
+	_, ok := sshMap["public_key_fingerprint"]
+	if !ok {
+		return ssh, errors.New("Key not found in map: public_key_fingerprint")
+	}
+	delete(sshMap, "public_key_fingerprint")
+
+	sshYaml, _ := yaml.Marshal(value)
+
+	err := yaml.UnmarshalStrict(sshYaml, &ssh)
+
+	return ssh, err
+}
+
+func tryUnmarshalRsa(value interface{}) (values.RSA, error) {
+	rsaYaml, _ := yaml.Marshal(value)
+
+	rsa := values.RSA{}
+	err := yaml.UnmarshalStrict(rsaYaml, &rsa)
+
+	return rsa, err
 }
 
 func makePassword(name, value string) Password {
@@ -70,5 +108,31 @@ func makeCertificate(name string, certificate values.Certificate) Certificate {
 			Type: "certificate",
 		},
 		Value: certificate,
+	}
+}
+
+func makeSsh(name string, ssh values.SSH) SSH {
+	sshVal := SSH{
+		Metadata: Metadata{
+			Base: Base{
+				Name: name,
+			},
+			Type: "ssh",
+		},
+	}
+	sshVal.Value.PublicKey = ssh.PublicKey
+	sshVal.Value.PrivateKey = ssh.PrivateKey
+	return sshVal
+}
+
+func makeRsa(name string, rsa values.RSA) RSA {
+	return RSA{
+		Metadata: Metadata{
+			Base: Base{
+				Name: name,
+			},
+			Type: "rsa",
+		},
+		Value: rsa,
 	}
 }

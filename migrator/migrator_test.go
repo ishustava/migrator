@@ -32,5 +32,27 @@ var _ = Describe("Migrator", func() {
 				Expect(creds.Certificates).To(ConsistOf(cert1, cert2))
 			})
 		})
+
+		Context("SSH", func() {
+			It("finds and returns ssh credentials", func() {
+				ssh := makeSsh("path5", values.SSH{PublicKey: SSH_PUB, PrivateKey: SSH_PRIV})
+
+				creds, err := parseVarsStoreFile("../test_fixtures/valid_creds.yml")
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(creds.SshKeys).To(ConsistOf(ssh))
+			})
+		})
+
+		Context("RSA", func() {
+			It("finds and returns rsa credentials", func() {
+				rsa := makeRsa("path6", values.RSA{PublicKey: RSA_PUB, PrivateKey: RSA_PRIV})
+
+				creds, err := parseVarsStoreFile("../test_fixtures/valid_creds.yml")
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(creds.RsaKeys).To(ConsistOf(rsa))
+			})
+		})
 	})
 })
