@@ -32,7 +32,7 @@ func (cmd MigrateCommand) Execute([]string) error {
 		return err
 	}
 
-	credentials, err := parser.FindCredentials(varsStore)
+	credentials, err := parser.ParseCredentials(varsStore)
 	if err != nil {
 		return err
 	}

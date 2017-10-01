@@ -7,7 +7,15 @@ import (
 	. "github.com/ishustava/migrator/credentials"
 )
 
-func FindCredentials(varsStore map[string]interface{}) (*Credentials, error) {
+func AddNamePrefix(varsStore map[string]interface{}, prefix string) map[string]interface{} {
+	newVarsStore := make(map[string]interface{})
+	for name, value := range varsStore {
+		newVarsStore[prefix + name] = value
+	}
+	return newVarsStore
+}
+
+func ParseCredentials(varsStore map[string]interface{}) (*Credentials, error) {
 	creds := new(Credentials)
 
 	for name, value := range varsStore {

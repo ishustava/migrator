@@ -10,7 +10,7 @@ import (
 )
 
 var _ = Describe("Parser", func() {
-	Describe("#FindCredentials", func() {
+	Describe("#ParseCredentials", func() {
 		Context("Passwords", func() {
 			It("finds and returns password credentials", func() {
 				password1 := credentials.NewPassword("path1", "password1")
@@ -21,7 +21,7 @@ var _ = Describe("Parser", func() {
 					"path2": "password2",
 				}
 
-				creds, err := parser.FindCredentials(varsStore)
+				creds, err := parser.ParseCredentials(varsStore)
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(creds.Passwords).To(ConsistOf(password1, password2))
@@ -45,7 +45,7 @@ var _ = Describe("Parser", func() {
 					},
 				}
 
-				creds, err := parser.FindCredentials(varsStore)
+				creds, err := parser.ParseCredentials(varsStore)
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(creds.Certificates).To(ConsistOf(cert1, cert2))
@@ -64,7 +64,7 @@ var _ = Describe("Parser", func() {
 					},
 				}
 
-				creds, err := parser.FindCredentials(varsStore)
+				creds, err := parser.ParseCredentials(varsStore)
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(creds.SshKeys).To(ConsistOf(ssh))
@@ -82,11 +82,26 @@ var _ = Describe("Parser", func() {
 					},
 				}
 
-				creds, err := parser.FindCredentials(varsStore)
+				creds, err := parser.ParseCredentials(varsStore)
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(creds.RsaKeys).To(ConsistOf(rsa))
 			})
+		})
+	})
+
+	Describe("#AddNamePrefix", func() {
+		It("returns a new vars store with prefixed names", func() {
+			varsStore := map[string]interface{}{
+				"path1": "password1",
+				"path2": "password2",
+			}
+			expectedVarsStore := map[string]interface{}{
+				"/director-1/deployment-1/path1": "password1",
+				"/director-1/deployment-1/path2": "password2",
+			}
+			newVarsStore := parser.AddNamePrefix(varsStore, "/director-1/deployment-1/")
+			Expect(newVarsStore).To(Equal(expectedVarsStore))
 		})
 	})
 })
