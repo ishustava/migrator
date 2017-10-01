@@ -1,12 +1,11 @@
-package migrator
+package credhub
 
 import (
 	"github.com/ishustava/migrator/credentials"
-	credhub_client "github.com/ishustava/migrator/credhub"
 	"github.com/cloudfoundry-incubator/credhub-cli/credhub/credentials/values"
 )
 
-func Migrate(credentials credentials.Credentials, credhub credhub_client.CredHubClient) error {
+func BulkSet(credentials *credentials.Credentials, credhub CredHubClient) error {
 	for _, pass := range credentials.Passwords {
 		credhub.SetPassword(pass.Name, pass.Value, true)
 	}

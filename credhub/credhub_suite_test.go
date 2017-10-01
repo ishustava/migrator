@@ -1,4 +1,4 @@
-package migrator_test
+package credhub_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -9,5 +9,5 @@ import (
 
 func TestMigrator(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Migrator Suite")
+	RunSpecs(t, "Credhub Suite")
 }

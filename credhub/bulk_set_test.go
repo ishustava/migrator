@@ -1,4 +1,4 @@
-package migrator_test
+package credhub_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -6,8 +6,8 @@ import (
 	"github.com/ishustava/migrator/credhub/credhubfakes"
 	"github.com/ishustava/migrator/credentials"
 	"github.com/cloudfoundry-incubator/credhub-cli/credhub/credentials/values"
-	"github.com/ishustava/migrator/migrator"
 	credentials2 "github.com/cloudfoundry-incubator/credhub-cli/credhub/credentials"
+	"github.com/ishustava/migrator/credhub"
 )
 
 var _ = Describe("Migrator", func() {
@@ -25,7 +25,7 @@ var _ = Describe("Migrator", func() {
 			RsaKeys: []credentials2.RSA{rsa},
 		}
 
-		err := migrator.Migrate(creds, client)
+		err := credhub.BulkSet(&creds, client)
 
 		Expect(err).ToNot(HaveOccurred())
 		Expect(client.SetPasswordCallCount()).To(Equal(2))
