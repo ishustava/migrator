@@ -13,7 +13,7 @@ import (
 	"github.com/cloudfoundry-incubator/credhub-cli/credhub/credentials/values"
 )
 
-const PUT_REQUEST = `{"type":"%s","name":"%s","value":%s,"overwrite":true}`
+const PUT_REQUEST = `{"type":"%s","name":"%s","value":%s,"mode":"overwrite"}`
 
 var _ = Describe("Migrate", func() {
 	var (

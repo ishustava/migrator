@@ -3,29 +3,31 @@ package credhub
 import (
 	"github.com/ishustava/migrator/credentials"
 	"github.com/cloudfoundry-incubator/credhub-cli/credhub/credentials/values"
+	"github.com/cloudfoundry-incubator/credhub-cli/credhub"
 )
 
-func BulkSet(credentials *credentials.Credentials, credhub CredHubClient) error {
+func BulkSet(credentials *credentials.Credentials, credHubClient CredHubClient) error {
+	mode := credhub.Overwrite
 	for _, pass := range credentials.Passwords {
-		credhub.SetPassword(pass.Name, pass.Value, true)
+		credHubClient.SetPassword(pass.Name, pass.Value, mode)
 	}
 
 	for _, cert := range credentials.Certificates {
-		credhub.SetCertificate(cert.Name, cert.Value, true)
+		credHubClient.SetCertificate(cert.Name, cert.Value, mode)
 	}
 
 	for _, rsa := range credentials.RsaKeys {
-		credhub.SetRSA(rsa.Name, rsa.Value, true)
+		credHubClient.SetRSA(rsa.Name, rsa.Value, mode)
 	}
 
 	for _, ssh := range credentials.SshKeys {
-		credhub.SetSSH(
+		credHubClient.SetSSH(
 			ssh.Name,
 			values.SSH{
 				PublicKey: ssh.Value.PublicKey,
 				PrivateKey: ssh.Value.PrivateKey,
 			},
-			true)
+			mode)
 	}
 
 	return nil
