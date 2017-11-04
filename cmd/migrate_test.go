@@ -48,6 +48,8 @@ var _ = Describe("Migrate", func() {
 				"-u", credhubServer.URL(),
 				"-c", "test_client",
 				"-s", "test_secret",
+				"-e", "my-bosh",
+				"-d", "my-deployment",
 				"--ca-cert", "test-certs/credhub-tls-ca.pem",
 				"--ca-cert", "test-certs/uaa-tls-ca.pem")
 
@@ -68,7 +70,7 @@ func setupRSAHandler(credhubServer *ghttp.Server) {
 	credhubServer.AppendHandlers(
 		ghttp.CombineHandlers(
 			ghttp.VerifyRequest("PUT", "/api/v1/data"),
-			ghttp.VerifyJSON(fmt.Sprintf(PUT_REQUEST, "rsa", "path6", rsaJson)),
+			ghttp.VerifyJSON(fmt.Sprintf(PUT_REQUEST, "rsa", "my-bosh/my-deployment/path6", rsaJson)),
 			ghttp.RespondWith(http.StatusOK, nil),
 		),
 	)
@@ -81,7 +83,7 @@ func setupSSHHandler(credhubServer *ghttp.Server) {
 	credhubServer.AppendHandlers(
 		ghttp.CombineHandlers(
 			ghttp.VerifyRequest("PUT", "/api/v1/data"),
-			ghttp.VerifyJSON(fmt.Sprintf(PUT_REQUEST, "ssh", "path5", sshJson)),
+			ghttp.VerifyJSON(fmt.Sprintf(PUT_REQUEST, "ssh", "my-bosh/my-deployment/path5", sshJson)),
 			ghttp.RespondWith(http.StatusOK, nil),
 		),
 	)
@@ -91,19 +93,19 @@ func setupPasswordHandler(credhubServer *ghttp.Server) {
 	credhubServer.AppendHandlers(
 		ghttp.CombineHandlers(
 			ghttp.VerifyRequest("PUT", "/api/v1/data"),
-			ghttp.VerifyJSON(fmt.Sprintf(PUT_REQUEST, "password", "path1", `"password1"`)),
+			ghttp.VerifyJSON(fmt.Sprintf(PUT_REQUEST, "password", "my-bosh/my-deployment/path1", `"password1"`)),
 			ghttp.RespondWith(http.StatusOK, nil),
 		),
 		ghttp.CombineHandlers(
 			ghttp.VerifyRequest("PUT", "/api/v1/data"),
-			ghttp.VerifyJSON(fmt.Sprintf(PUT_REQUEST, "password", "path2", `"password2"`)),
+			ghttp.VerifyJSON(fmt.Sprintf(PUT_REQUEST, "password", "my-bosh/my-deployment/path2", `"password2"`)),
 			ghttp.RespondWith(http.StatusOK, nil),
 		),
 	)
 }
 
 func setupCertificateHandler(credhubServer *ghttp.Server) {
-	certJson1, err := json.Marshal(values.Certificate{CaName: "path4", Certificate: test_fixtures.SIGNED_BY_ROOT_LEAF1_CERT, PrivateKey: test_fixtures.SIGNED_BY_ROOT_LEAF1_PRIV})
+	certJson1, err := json.Marshal(values.Certificate{CaName: "my-bosh/my-deployment/path4", Certificate: test_fixtures.SIGNED_BY_ROOT_LEAF1_CERT, PrivateKey: test_fixtures.SIGNED_BY_ROOT_LEAF1_PRIV})
 	Expect(err).ToNot(HaveOccurred())
 
 	certJson2, err := json.Marshal(values.Certificate{Certificate: test_fixtures.ROOT_CA_CERT, PrivateKey: test_fixtures.ROOT_CA_PRIV})
@@ -112,12 +114,12 @@ func setupCertificateHandler(credhubServer *ghttp.Server) {
 	credhubServer.AppendHandlers(
 		ghttp.CombineHandlers(
 			ghttp.VerifyRequest("PUT", "/api/v1/data"),
-			ghttp.VerifyJSON(fmt.Sprintf(PUT_REQUEST, "certificate", "path4", certJson2)),
+			ghttp.VerifyJSON(fmt.Sprintf(PUT_REQUEST, "certificate", "my-bosh/my-deployment/path4", certJson2)),
 			ghttp.RespondWith(http.StatusOK, nil),
 		),
 		ghttp.CombineHandlers(
 			ghttp.VerifyRequest("PUT", "/api/v1/data"),
-			ghttp.VerifyJSON(fmt.Sprintf(PUT_REQUEST, "certificate", "path3", certJson1)),
+			ghttp.VerifyJSON(fmt.Sprintf(PUT_REQUEST, "certificate", "my-bosh/my-deployment/path3", certJson1)),
 			ghttp.RespondWith(http.StatusOK, nil),
 		),
 	)

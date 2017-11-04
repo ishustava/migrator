@@ -34,6 +34,7 @@ func (cmd MigrateCommand) Execute([]string) error {
 		return err
 	}
 
+	varsStore = parser.AddBoshNamespacing(varsStore, cmd.DirectorName, cmd.DeploymentName)
 	credentials, err := parser.ParseCredentials(varsStore)
 	if err != nil {
 		return err

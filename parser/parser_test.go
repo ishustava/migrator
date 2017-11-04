@@ -90,17 +90,17 @@ var _ = Describe("Parser", func() {
 		})
 	})
 
-	Describe("#AddNamePrefix", func() {
+	Describe("#AddBoshNamespacing", func() {
 		It("returns a new vars store with prefixed names", func() {
 			varsStore := map[string]interface{}{
 				"path1": "password1",
 				"path2": "password2",
 			}
 			expectedVarsStore := map[string]interface{}{
-				"/director-1/deployment-1/path1": "password1",
-				"/director-1/deployment-1/path2": "password2",
+				"director-1/deployment-1/path1": "password1",
+				"director-1/deployment-1/path2": "password2",
 			}
-			newVarsStore := parser.AddNamePrefix(varsStore, "/director-1/deployment-1/")
+			newVarsStore := parser.AddBoshNamespacing(varsStore, "director-1", "deployment-1")
 			Expect(newVarsStore).To(Equal(expectedVarsStore))
 		})
 	})

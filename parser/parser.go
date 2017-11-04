@@ -5,12 +5,14 @@ import (
 	"gopkg.in/yaml.v2"
 	"github.com/cloudfoundry-incubator/credhub-cli/credhub/credentials/values"
 	. "github.com/ishustava/migrator/credentials"
+	"path"
 )
 
-func AddNamePrefix(varsStore map[string]interface{}, prefix string) map[string]interface{} {
+func AddBoshNamespacing(varsStore map[string]interface{}, directorName, deploymentName string) map[string]interface{} {
 	newVarsStore := make(map[string]interface{})
 	for name, value := range varsStore {
-		newVarsStore[prefix + name] = value
+		fullName := path.Join(directorName, deploymentName, name)
+		newVarsStore[fullName] = value
 	}
 	return newVarsStore
 }
