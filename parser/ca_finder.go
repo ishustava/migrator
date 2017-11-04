@@ -6,7 +6,6 @@ import (
 	"crypto/x509"
 	"errors"
 	"reflect"
-	"fmt"
 )
 
 func FindAndSetSigningCA(certificates []credentials.Certificate) ([]credentials.Certificate, error) {
@@ -17,7 +16,6 @@ func FindAndSetSigningCA(certificates []credentials.Certificate) ([]credentials.
 
 	for i, cert := range certs {
 		caName, err := findSigningCaName(cert, cas)
-		fmt.Printf("ca is: %s, certificate is: %s\n", caName, cert.Name)
 		if err != nil {
 			return certificates, err
 		}

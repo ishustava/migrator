@@ -24,7 +24,7 @@ func BulkSet(credentials *credentials.Credentials, credHubClient CredHubClient) 
 		credHubClient.SetSSH(
 			ssh.Name,
 			values.SSH{
-				PublicKey: ssh.Value.PublicKey,
+				PublicKey:  ssh.Value.PublicKey,
 				PrivateKey: ssh.Value.PrivateKey,
 			},
 			mode)

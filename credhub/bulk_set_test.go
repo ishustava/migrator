@@ -10,7 +10,7 @@ import (
 	"github.com/ishustava/migrator/credhub"
 )
 
-var _ = Describe("Migrator", func() {
+var _ = Describe("Bulk Set", func() {
 	It("sets credentials in CredHub", func() {
 		client := new(credhubfakes.FakeCredHubClient)
 		firstPass := credentials.NewPassword("test-pass-1", "value1")

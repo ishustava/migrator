@@ -39,6 +39,11 @@ func (cmd MigrateCommand) Execute([]string) error {
 		return err
 	}
 
+	credentials.Certificates, err = parser.FindAndSetSigningCA(credentials.Certificates)
+	if err != nil {
+		return err
+	}
+
 	caCerts, err := commands.ReadOrGetCaCerts(cmd.CaCerts)
 	if err != nil {
 		return err
