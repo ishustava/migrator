@@ -103,10 +103,10 @@ func setupPasswordHandler(credhubServer *ghttp.Server) {
 }
 
 func setupCertificateHandler(credhubServer *ghttp.Server) {
-	certJson1, err := json.Marshal(values.Certificate{Ca: test_fixtures.CA1, Certificate: test_fixtures.CERT1, PrivateKey: test_fixtures.PRIV1})
+	certJson1, err := json.Marshal(values.Certificate{Ca: test_fixtures.SIGNED_BY_ROOT_LEAF1_CA, Certificate: test_fixtures.SIGNED_BY_ROOT_LEAF1_CERT, PrivateKey: test_fixtures.SIGNED_BY_ROOT_LEAF1_PRIV})
 	Expect(err).ToNot(HaveOccurred())
 
-	certJson2, err := json.Marshal(values.Certificate{Certificate: test_fixtures.CERT2, PrivateKey: test_fixtures.PRIV2})
+	certJson2, err := json.Marshal(values.Certificate{Certificate: test_fixtures.ROOT_CA_CERT, PrivateKey: test_fixtures.ROOT_CA_PRIV})
 	Expect(err).ToNot(HaveOccurred())
 
 	credhubServer.AppendHandlers(

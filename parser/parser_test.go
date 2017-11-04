@@ -30,18 +30,18 @@ var _ = Describe("Parser", func() {
 
 		Context("Certificates", func() {
 			It("finds and returns certificate credentials", func() {
-				cert1 := credentials.NewCertificate("path3", values.Certificate{Ca: CA1, Certificate: CERT1, PrivateKey: PRIV1})
-				cert2 := credentials.NewCertificate("path4", values.Certificate{Certificate: CERT2, PrivateKey: PRIV2})
+				cert1 := credentials.NewCertificate("path3", values.Certificate{Ca: SIGNED_BY_ROOT_LEAF1_CA, Certificate: SIGNED_BY_ROOT_LEAF1_CERT, PrivateKey: SIGNED_BY_ROOT_LEAF1_PRIV})
+				cert2 := credentials.NewCertificate("path4", values.Certificate{Certificate: ROOT_CA_CERT, PrivateKey: ROOT_CA_PRIV})
 
 				varsStore := map[string]interface{}{
 					"path3": map[interface{}]interface{}{
-						"ca": CA1,
-						"certificate": CERT1,
-						"private_key": PRIV1,
+						"ca":          SIGNED_BY_ROOT_LEAF1_CA,
+						"certificate": SIGNED_BY_ROOT_LEAF1_CERT,
+						"private_key": SIGNED_BY_ROOT_LEAF1_PRIV,
 					},
 					"path4": map[interface{}]interface{}{
-						"certificate": CERT2,
-						"private_key": PRIV2,
+						"certificate": ROOT_CA_CERT,
+						"private_key": ROOT_CA_PRIV,
 					},
 				}
 
