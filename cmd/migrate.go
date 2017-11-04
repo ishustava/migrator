@@ -54,7 +54,7 @@ func (cmd MigrateCommand) Execute([]string) error {
 		return err
 	}
 
-	err = credhub.BulkSet(credentials, ch)
+	err = credhub.BulkSet(credentials, *ch)
 	if err == nil {
 		fmt.Println("Successfully migrated all credentials")
 	}
