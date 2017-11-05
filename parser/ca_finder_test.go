@@ -47,7 +47,7 @@ var _ = Describe("CA Finder", func() {
 	})
 
 	// BOSH CLI doesn't support generation of intermediate CAs
-	// and istead alsways generates root for any certificate
+	// and instead always generates root for any certificate
 	// with `is_ca: true` specified in the variables section
 	// https://github.com/cloudfoundry/bosh-cli/issues/354
 	XContext("with intermediate and root cas", func() {
