@@ -12,13 +12,13 @@ import (
 )
 
 type MigrateCommand struct {
-	VarsStore           string   `short:"v" long:"vars-store" required:"yes" description:"Path to vars store file."`
-	CredHubURL          string   `short:"u" long:"credhub-url" description:"URL of the CredHub server, e.g. https://example.com:8844" env:"CREDHUB_URL"`
-	CredHubClient       string   `short:"c" long:"credhub-client" description:"UAA client for the CredHub Server" env:"CREDHUB_CLIENT"`
-	CredHubClientSecret string   `short:"s" long:"credhub-client-secret" description:"UAA client secret for the CredHub Server" env:"CREDHUB_CLIENT_SECRET"`
-	DirectorName        string   `short:"e" long:"director-name" description:"Name of the BOSH director"`
-	DeploymentName      string   `short:"d" long:"deployment-name" description:"Name of the BOSH deployment with which vars store is used"`
-	CaCerts             []string `long:"ca-cert" description:"Trusted CA for API and UAA TLS connections. Multiple flags may be provided." env:"CREDHUB_CA_CERT"`
+	VarsStore           string   `short:"v" long:"vars-store" required:"yes" description:"Path to vars store file." required:"true"`
+	CredHubURL          string   `short:"u" long:"credhub-server" description:"URL of the CredHub server, e.g. https://example.com:8844" env:"CREDHUB_SERVER" required:"true"`
+	CredHubClient       string   `short:"c" long:"credhub-client" description:"UAA client for the CredHub Server" env:"CREDHUB_CLIENT" required:"true"`
+	CredHubClientSecret string   `short:"s" long:"credhub-secret" description:"UAA client secret for the CredHub Server" env:"CREDHUB_SECRET" required:"true"`
+	DirectorName        string   `short:"e" long:"director-name" description:"Name of the BOSH director" required:"true"`
+	DeploymentName      string   `short:"d" long:"deployment-name" description:"Name of the BOSH deployment with which vars store is used" env:"BOSH_DEPLOYMENT" required:"true"`
+	CaCerts             []string `long:"ca-cert" description:"Trusted CA for API and UAA TLS connections. Multiple flags may be provided." env:"CREDHUB_CA_CERT" required:"true"`
 }
 
 func (cmd MigrateCommand) Execute([]string) error {
