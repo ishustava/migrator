@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"errors"
 	"reflect"
+	"fmt"
 )
 
 func FindAndSetSigningCA(certificates []credentials.Certificate) ([]credentials.Certificate, error) {
@@ -59,17 +60,16 @@ func findSigningCaName(certificate credentials.Certificate, cas []credentials.Ce
 	if err != nil {
 		return "", err
 	}
-
 	for _, ca := range cas {
 		certPool := x509.NewCertPool()
 		if ok := certPool.AppendCertsFromPEM([]byte(ca.Value.Certificate)); ok {
-			_, err := parsedCert.Verify(x509.VerifyOptions{Roots: certPool})
+			_, err := parsedCert.Verify(x509.VerifyOptions{Roots: certPool, KeyUsages: []x509.ExtKeyUsage{x509.ExtKeyUsageAny}})
 			if err == nil {
 				return ca.Name, nil
 			}
 		}
 	}
-	return "", errors.New("Could not find signing CA")
+	return "", errors.New(fmt.Sprintf("Could not find signing CA for '%s'", certificate.Name))
 }
 
 func parsePemCertificate(pemCert string) (*x509.Certificate, error) {
