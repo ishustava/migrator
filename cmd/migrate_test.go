@@ -4,7 +4,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gexec"
-	. "github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/ghttp"
 	"net/http"
 	"fmt"
@@ -68,7 +67,9 @@ var _ = Describe("Migrate", func() {
 				"--ca-cert", "test-certs/uaa-tls-ca.pem")
 
 			Eventually(session).Should(Exit(0))
-			Eventually(session.Out).Should(Say("Successfully migrated all credentials"))
+			stdout := string(session.Out.Contents())
+			Expect(stdout).Should(ContainSubstring("Planning to migrate 2 passwords, 2 certificates, 1 RSA key, and 1 SSH key (6 credentials total)."))
+			Expect(stdout).Should(ContainSubstring("Successfully migrated all credentials."))
 
 			rsaJson, err := json.Marshal(values.SSH{PublicKey: test_fixtures.RSA_PUB, PrivateKey: test_fixtures.RSA_PRIV})
 			Expect(err).ToNot(HaveOccurred())
