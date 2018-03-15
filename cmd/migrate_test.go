@@ -8,18 +8,28 @@ import (
 	"github.com/onsi/gomega/ghttp"
 	"net/http"
 	"fmt"
-	"github.com/ishustava/migrator/test_fixtures"
+	"io/ioutil"
 	"encoding/json"
 	"github.com/cloudfoundry-incubator/credhub-cli/credhub/credentials/values"
+	"github.com/ishustava/migrator/test_fixtures"
+	"os"
 )
-
-const PUT_REQUEST = `{"type":"%s","name":"%s","value":%s,"mode":"overwrite"}`
 
 var _ = Describe("Migrate", func() {
 	var (
 		credhubServer *ghttp.Server
 		uaaServer     *ghttp.Server
+		requestBodies []string
+		varsStoreFile string
+		err           error
 	)
+
+	var saveRequestBody = func(_ http.ResponseWriter, req *http.Request) {
+		body, err := ioutil.ReadAll(req.Body)
+		req.Body.Close()
+		Expect(err).ShouldNot(HaveOccurred())
+		requestBodies = append(requestBodies, string(body))
+	}
 
 	BeforeEach(func() {
 		credhubServer = newTLSServer("test-certs/credhub-tls-cert.pem", "test-certs/credhub-tls-key.pem")
@@ -27,24 +37,28 @@ var _ = Describe("Migrate", func() {
 
 		setupInfoHandler(credhubServer, uaaServer)
 		setupLoginHandler(uaaServer)
+
+		varsStoreFile, err = test_fixtures.GenerateTestVarsStore()
+		Expect(err).ToNot(HaveOccurred())
 	})
 
 	AfterEach(func() {
 		credhubServer.Reset()
 		uaaServer.Reset()
+		Expect(os.Remove(varsStoreFile)).ToNot(HaveOccurred())
 	})
 
 	Context("Successful", func() {
 		BeforeEach(func() {
-			setupPasswordHandler(credhubServer)
-			setupCertificateHandler(credhubServer)
-			setupRSAHandler(credhubServer)
-			setupSSHHandler(credhubServer)
+			credhubServer.RouteToHandler("PUT", "/api/v1/data", ghttp.CombineHandlers(
+				ghttp.RespondWith(http.StatusOK, nil),
+				saveRequestBody,
+			))
 		})
 
 		It("migrates credentials from vars store to credhub", func() {
 			session := runCommand("migrate",
-				"-v", "../test_fixtures/valid_creds.yml",
+				"-v", varsStoreFile,
 				"-u", credhubServer.URL(),
 				"-c", "test_client",
 				"-s", "test_secret",
@@ -56,73 +70,40 @@ var _ = Describe("Migrate", func() {
 			Eventually(session).Should(Exit(0))
 			Eventually(session.Out).Should(Say("Successfully migrated all credentials"))
 
-			Expect(credhubServer.ReceivedRequests()).To(HaveLen(8))
+			rsaJson, err := json.Marshal(values.SSH{PublicKey: test_fixtures.RSA_PUB, PrivateKey: test_fixtures.RSA_PRIV})
+			Expect(err).ToNot(HaveOccurred())
+
+			sshJson, err := json.Marshal(values.SSH{PublicKey: test_fixtures.SSH_PUB, PrivateKey: test_fixtures.SSH_PRIV})
+			Expect(err).ToNot(HaveOccurred())
+
+			certJson1, err := json.Marshal(values.Certificate{CaName: "my-bosh/my-deployment/path4", Certificate: test_fixtures.SIGNED_BY_ROOT_LEAF1_CERT, PrivateKey: test_fixtures.SIGNED_BY_ROOT_LEAF1_PRIV})
+			Expect(err).ToNot(HaveOccurred())
+
+			certJson2, err := json.Marshal(values.Certificate{Ca: test_fixtures.ROOT_CA_CERT, Certificate: test_fixtures.ROOT_CA_CERT, PrivateKey: test_fixtures.ROOT_CA_PRIV})
+			Expect(err).ToNot(HaveOccurred())
+
+			passJsonRequest1 := putRequestBody("password", "my-bosh/my-deployment/path1", `"password1"`)
+			passJsonRequest2 := putRequestBody("password", "my-bosh/my-deployment/path2", `"password2"`)
+			certJsonRequest1 := putRequestBody("certificate", "my-bosh/my-deployment/path3", string(certJson1))
+			certJsonRequest2 := putRequestBody("certificate", "my-bosh/my-deployment/path4", string(certJson2))
+			sshJsonRequest := putRequestBody("ssh", "my-bosh/my-deployment/path5", string(sshJson))
+			rsaJsonRequest := putRequestBody("rsa", "my-bosh/my-deployment/path6", string(rsaJson))
+
 			Expect(uaaServer.ReceivedRequests()).To(HaveLen(1))
+			Expect(requestBodies).Should(ConsistOf(
+				MatchJSON(passJsonRequest1),
+				MatchJSON(passJsonRequest2),
+				MatchJSON(rsaJsonRequest),
+				MatchJSON(sshJsonRequest),
+				MatchJSON(certJsonRequest1),
+				MatchJSON(certJsonRequest2),
+			))
 		})
 	})
-
 })
 
-func setupRSAHandler(credhubServer *ghttp.Server) {
-	rsaJson, err := json.Marshal(values.SSH{PublicKey: test_fixtures.RSA_PUB, PrivateKey: test_fixtures.RSA_PRIV})
-	Expect(err).ToNot(HaveOccurred())
-
-	credhubServer.AppendHandlers(
-		ghttp.CombineHandlers(
-			ghttp.VerifyRequest("PUT", "/api/v1/data"),
-			ghttp.VerifyJSON(fmt.Sprintf(PUT_REQUEST, "rsa", "my-bosh/my-deployment/path6", rsaJson)),
-			ghttp.RespondWith(http.StatusOK, nil),
-		),
-	)
-}
-
-func setupSSHHandler(credhubServer *ghttp.Server) {
-	sshJson, err := json.Marshal(values.SSH{PublicKey: test_fixtures.SSH_PUB, PrivateKey: test_fixtures.SSH_PRIV})
-	Expect(err).ToNot(HaveOccurred())
-
-	credhubServer.AppendHandlers(
-		ghttp.CombineHandlers(
-			ghttp.VerifyRequest("PUT", "/api/v1/data"),
-			ghttp.VerifyJSON(fmt.Sprintf(PUT_REQUEST, "ssh", "my-bosh/my-deployment/path5", sshJson)),
-			ghttp.RespondWith(http.StatusOK, nil),
-		),
-	)
-}
-
-func setupPasswordHandler(credhubServer *ghttp.Server) {
-	credhubServer.AppendHandlers(
-		ghttp.CombineHandlers(
-			ghttp.VerifyRequest("PUT", "/api/v1/data"),
-			ghttp.VerifyJSON(fmt.Sprintf(PUT_REQUEST, "password", "my-bosh/my-deployment/path1", `"password1"`)),
-			ghttp.RespondWith(http.StatusOK, nil),
-		),
-		ghttp.CombineHandlers(
-			ghttp.VerifyRequest("PUT", "/api/v1/data"),
-			ghttp.VerifyJSON(fmt.Sprintf(PUT_REQUEST, "password", "my-bosh/my-deployment/path2", `"password2"`)),
-			ghttp.RespondWith(http.StatusOK, nil),
-		),
-	)
-}
-
-func setupCertificateHandler(credhubServer *ghttp.Server) {
-	certJson1, err := json.Marshal(values.Certificate{CaName: "my-bosh/my-deployment/path4", Certificate: test_fixtures.SIGNED_BY_ROOT_LEAF1_CERT, PrivateKey: test_fixtures.SIGNED_BY_ROOT_LEAF1_PRIV})
-	Expect(err).ToNot(HaveOccurred())
-
-	certJson2, err := json.Marshal(values.Certificate{Certificate: test_fixtures.ROOT_CA_CERT, PrivateKey: test_fixtures.ROOT_CA_PRIV})
-	Expect(err).ToNot(HaveOccurred())
-
-	credhubServer.AppendHandlers(
-		ghttp.CombineHandlers(
-			ghttp.VerifyRequest("PUT", "/api/v1/data"),
-			ghttp.VerifyJSON(fmt.Sprintf(PUT_REQUEST, "certificate", "my-bosh/my-deployment/path4", certJson2)),
-			ghttp.RespondWith(http.StatusOK, nil),
-		),
-		ghttp.CombineHandlers(
-			ghttp.VerifyRequest("PUT", "/api/v1/data"),
-			ghttp.VerifyJSON(fmt.Sprintf(PUT_REQUEST, "certificate", "my-bosh/my-deployment/path3", certJson1)),
-			ghttp.RespondWith(http.StatusOK, nil),
-		),
-	)
+func putRequestBody(t, name, value string) string {
+	return fmt.Sprintf(`{"type":"%s","name":"%s","value":%s,"mode":"overwrite"}`, t, name, value)
 }
 
 func setupLoginHandler(uaaServer *ghttp.Server) {
