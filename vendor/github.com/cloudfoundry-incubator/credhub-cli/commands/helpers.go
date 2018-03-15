@@ -3,19 +3,20 @@ package commands
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 
-	"net/http"
-
-	"github.com/cloudfoundry-incubator/credhub-cli/client"
 	"github.com/cloudfoundry-incubator/credhub-cli/config"
 	"github.com/cloudfoundry-incubator/credhub-cli/credhub"
 	"github.com/cloudfoundry-incubator/credhub-cli/credhub/auth"
+	"github.com/cloudfoundry-incubator/credhub-cli/errors"
 	"gopkg.in/yaml.v2"
 )
 
 func initializeCredhubClient(cfg config.Config) (*credhub.CredHub, error) {
 	var credhubClient *credhub.CredHub
+
+	readConfigFromEnvironmentVariables(&cfg)
 
 	err := config.ValidateConfig(cfg)
 	if err != nil {
@@ -43,6 +44,32 @@ func printCredential(outputJson bool, v interface{}) {
 	}
 }
 
+func readConfigFromEnvironmentVariables(cfg *config.Config) error {
+	if cfg.CaCerts == nil && os.Getenv("CREDHUB_CA_CERT") != "" {
+		caCerts, err := ReadOrGetCaCerts([]string{os.Getenv("CREDHUB_CA_CERT")})
+		if err != nil {
+			return err
+		}
+
+		cfg.CaCerts = caCerts
+	}
+
+	if cfg.ApiURL == "" && os.Getenv("CREDHUB_SERVER") != "" {
+		cfg.ApiURL = os.Getenv("CREDHUB_SERVER")
+	}
+
+	if cfg.AuthURL == "" {
+		credhubInfo, err := GetApiInfo(cfg.ApiURL, cfg.CaCerts, cfg.InsecureSkipVerify)
+		if err != nil {
+			return errors.NewNetworkError(err)
+		}
+
+		cfg.AuthURL = credhubInfo.AuthServer.URL
+	}
+
+	return config.WriteConfig(*cfg)
+}
+
 func newCredhubClient(cfg *config.Config, clientId string, clientSecret string, usingClientCredentials bool) (*credhub.CredHub, error) {
 	credhubClient, err := credhub.New(cfg.ApiURL, credhub.CaCerts(cfg.CaCerts...), credhub.SkipTLSValidation(cfg.InsecureSkipVerify), credhub.Auth(auth.Uaa(
 		clientId,
@@ -53,8 +80,7 @@ func newCredhubClient(cfg *config.Config, clientId string, clientSecret string, 
 		cfg.RefreshToken,
 		usingClientCredentials,
 	)),
-		credhub.AuthURL(cfg.AuthURL),
-		credhub.ServerVersion(cfg.ServerVersion))
+		credhub.AuthURL(cfg.AuthURL))
 	return credhubClient, err
 }
 
@@ -63,13 +89,14 @@ func clientCredentialsInEnvironment() bool {
 }
 
 func verifyAuthServerConnection(cfg config.Config, skipTlsValidation bool) error {
-	var err error
-
+	credhubClient, err := credhub.New(cfg.ApiURL, credhub.CaCerts(cfg.CaCerts...), credhub.SkipTLSValidation(skipTlsValidation))
+	if err != nil {
+		return err
+	}
 	if !skipTlsValidation {
 		request, _ := http.NewRequest("GET", cfg.AuthURL+"/info", nil)
 		request.Header.Add("Accept", "application/json")
-		_, err := client.NewHttpClient(cfg).Do(request)
-		return err
+		_, err = credhubClient.Client().Do(request)
 	}
 
 	return err

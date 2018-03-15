@@ -103,7 +103,7 @@ var _ = Describe("Migrate", func() {
 })
 
 func putRequestBody(t, name, value string) string {
-	return fmt.Sprintf(`{"type":"%s","name":"%s","value":%s,"mode":"overwrite"}`, t, name, value)
+	return fmt.Sprintf(`{"type":"%s","name":"%s","value":%s,"overwrite":true}`, t, name, value)
 }
 
 func setupLoginHandler(uaaServer *ghttp.Server) {

@@ -26,16 +26,16 @@
 
 
 [[constraint]]
-  branch = "1.6.x"
-  name = "github.com/cloudfoundry-incubator/credhub-cli"
-
-[[constraint]]
   branch = "master"
   name = "github.com/jessevdk/go-flags"
 
 [[constraint]]
   name = "gopkg.in/yaml.v2"
   version = "2.1.1"
+
+[[override]]
+  name = "github.com/cloudfoundry/socks5-proxy"
+  revision = "a5dbd34501d246ab6c004c9afebb5bd0dd9d7d22"
 
 [prune]
   go-tests = true

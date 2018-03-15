@@ -2,10 +2,8 @@
 
 
 [[projects]]
-  branch = "1.6.x"
   name = "github.com/cloudfoundry-incubator/credhub-cli"
   packages = [
-    "client",
     "commands",
     "config",
     "credhub",
@@ -21,7 +19,13 @@
     "util",
     "version"
   ]
-  revision = "857ae0e9d6a890573a4d410eebe0011142243dc2"
+  revision = "35c317ce9a93f63777191868b38fe323f5d1b958"
+  version = "1.6.0"
+
+[[projects]]
+  name = "github.com/cloudfoundry/socks5-proxy"
+  packages = ["."]
+  revision = "a5dbd34501d246ab6c004c9afebb5bd0dd9d7d22"
 
 [[projects]]
   name = "github.com/fatih/color"
@@ -30,9 +34,16 @@
   version = "v1.6.0"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/genevievelesperance/go-socks5"
+  packages = ["."]
+  revision = "54f73bdb8a8e85a6611d3d29ab9bbf98c2a060d7"
+
+[[projects]]
   name = "github.com/golang/protobuf"
   packages = ["proto"]
-  revision = "1643683e1b54a9e88ad26d98f81400c8c9d9f4f9"
+  revision = "925541529c1fa6821df4e44ce2723319eb2be768"
+  version = "v1.0.0"
 
 [[projects]]
   branch = "master"
@@ -86,7 +97,8 @@
     "reporters/stenographer/support/go-isatty",
     "types"
   ]
-  revision = "652e15c9a27e1cec563e065568014f29eecf6bd9"
+  revision = "9eda700730cba42af70d53180f9dcce9266bc2bc"
+  version = "v1.4.0"
 
 [[projects]]
   name = "github.com/onsi/gomega"
@@ -107,30 +119,43 @@
     "matchers/support/goraph/util",
     "types"
   ]
-  revision = "21750746aca98982020121b8360342d4e0e964a4"
+  revision = "003f63b7f4cff3fc95357005358af2de0f5fe152"
+  version = "v1.3.0"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
-  packages = ["ssh/terminal"]
+  packages = [
+    "curve25519",
+    "ed25519",
+    "ed25519/internal/edwards25519",
+    "internal/chacha20",
+    "poly1305",
+    "ssh",
+    "ssh/terminal"
+  ]
   revision = "21652f85b0fdddb6c2b6b77a5beca5c5a908174a"
 
 [[projects]]
+  branch = "master"
   name = "golang.org/x/net"
   packages = [
+    "context",
     "html",
     "html/atom",
-    "html/charset"
+    "html/charset",
+    "proxy"
   ]
-  revision = "01c190206fbdffa42f334f4b2bf2220f50e64920"
+  revision = "e0c57d8f86c17f0724497efcb3bc617e82834821"
 
 [[projects]]
+  branch = "master"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows"
   ]
-  revision = "8eb05f94d449fdf134ec24630ce69ada5b469c1c"
+  revision = "89ac7f292d17a339edab4de8efcba5d8672ff661"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -153,7 +178,8 @@
     "transform",
     "unicode/cldr"
   ]
-  revision = "88f656faf3f37f690df1a32515b479415e1a6769"
+  revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
+  version = "v0.3.0"
 
 [[projects]]
   name = "gopkg.in/yaml.v2"
@@ -164,6 +190,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "061c48d8c151178557d040416503357339e08ba91f72457eceb5023b5fa99591"
+  inputs-digest = "806646f3c24a40c63d1d8d2627eccc538421b3b17fe9b946567dec72dd163580"
   solver-name = "gps-cdcl"
   solver-version = 1
