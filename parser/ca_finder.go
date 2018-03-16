@@ -4,55 +4,81 @@ import (
 	"github.com/cloudfoundry-incubator/credhub-cli/credhub/credentials"
 	"encoding/pem"
 	"crypto/x509"
-	"errors"
 	"reflect"
-	"fmt"
 )
 
 func FindAndSetSigningCA(certificates []credentials.Certificate) ([]credentials.Certificate, error) {
-	cas, certs, err := separateCAsFromCerts(certificates)
+	result := make([]credentials.Certificate, len(certificates))
+	copy(result, certificates)
+
+	roots, ints, leafs, err := separateCerts(certificates)
 	if err != nil {
-		return certificates, err
+		return nil, err
 	}
 
-	for i, cert := range certs {
-		caName, err := findSigningCaName(cert, cas)
-		if err != nil {
-			return certificates, err
-		}
-		certs[i].Value.CaName = caName
-		certs[i].Value.Ca = "" // CredHub server requires Ca value to be empty if ca name is set
+	allCas := append(roots, ints...)
+
+	err = findAndSetSigningCaNames(ints, allCas)
+	if err != nil {
+		return nil, err
 	}
 
-	result := []credentials.Certificate{}
-	result = append(result, cas...)
-	result = append(result, certs...)
-	return result, nil
+	err = findAndSetSigningCaNames(leafs, allCas)
+	if err != nil {
+		return nil, err
+	}
+
+	result = append(roots, ints...)
+
+	return append(result, leafs...), nil
 }
 
-func separateCAsFromCerts(certificates []credentials.Certificate) ([]credentials.Certificate, []credentials.Certificate, error) {
-	cas := []credentials.Certificate{}
-	certs := []credentials.Certificate{}
-	for _, cert := range certificates {
+func isRootCa(cert *x509.Certificate) bool {
+	return cert.IsCA && reflect.DeepEqual(cert.Subject, cert.Issuer)
+}
+
+func isLeaf(cert *x509.Certificate) bool {
+	return !cert.IsCA
+}
+
+func separateCerts(certs []credentials.Certificate) ([]credentials.Certificate, []credentials.Certificate, []credentials.Certificate, error) {
+	roots := make([]credentials.Certificate, 0)
+	ints := make([]credentials.Certificate, 0)
+	leafs := make([]credentials.Certificate, 0)
+
+	for _, cert := range certs {
 		parsedCert, err := parsePemCertificate(cert.Value.Certificate)
 		if err != nil {
-			return cas, certs, err
+			return nil, nil, nil, err
 		}
 
-		if parsedCert.IsCA {
-			cas = append(cas, cert)
-			if isIntermediate(parsedCert) {
-				certs = append(certs, cert)
-			}
-		} else {
-			certs = append(certs, cert)
+		if isRootCa(parsedCert) {
+			roots = append(roots, cert)
+			continue
 		}
+
+		if isLeaf(parsedCert) {
+			leafs = append(leafs, cert)
+			continue
+		}
+
+		ints = append(ints, cert)
 	}
-	return cas, certs, nil
+	return roots, ints, leafs, nil
 }
 
-func isIntermediate(certificate *x509.Certificate) bool {
-	return certificate.IsCA && !reflect.DeepEqual(certificate.Subject, certificate.Issuer)
+func findAndSetSigningCaNames(certificates []credentials.Certificate, cas []credentials.Certificate) error {
+	for i, int := range certificates {
+		caName, err := findSigningCaName(int, cas)
+		if err != nil {
+			return err
+		}
+
+		certificates[i].Value.CaName = caName
+		certificates[i].Value.Ca = "" // CredHub server requires Ca value to be empty if ca name is set
+	}
+
+	return nil
 }
 
 func findSigningCaName(certificate credentials.Certificate, cas []credentials.Certificate) (string, error) {
@@ -69,7 +95,7 @@ func findSigningCaName(certificate credentials.Certificate, cas []credentials.Ce
 			}
 		}
 	}
-	return "", errors.New(fmt.Sprintf("Could not find signing CA for '%s'", certificate.Name))
+	return certificate.Name, nil
 }
 
 func parsePemCertificate(pemCert string) (*x509.Certificate, error) {

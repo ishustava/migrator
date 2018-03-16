@@ -16,7 +16,7 @@ var _ = Describe("CA Finder", func() {
 		It("sets the ca name of the signer on the signee", func() {
 			ca := credentials.NewCertificate(
 				"root-ca",
-					values.Certificate{Certificate: test_fixtures.ROOT_CA_CERT, PrivateKey: test_fixtures.ROOT_CA_PRIV},
+					values.Certificate{Ca: test_fixtures.ROOT_CA_CERT, Certificate: test_fixtures.ROOT_CA_CERT, PrivateKey: test_fixtures.ROOT_CA_PRIV},
 				)
 			cert1 := credentials.NewCertificate(
 				"test-cert1",
@@ -46,23 +46,19 @@ var _ = Describe("CA Finder", func() {
 		})
 	})
 
-	// BOSH CLI doesn't support generation of intermediate CAs
-	// and instead always generates root for any certificate
-	// with `is_ca: true` specified in the variables section
-	// https://github.com/cloudfoundry/bosh-cli/issues/354
-	XContext("with intermediate and root cas", func() {
+	Context("with intermediate and root cas", func() {
 		It("sets the ca name of the signer on the signee", func() {
 			root := credentials.NewCertificate(
 				"root-ca",
-				values.Certificate{Certificate: test_fixtures.ROOT_CA_CERT, PrivateKey: test_fixtures.ROOT_CA_PRIV},
+				values.Certificate{Ca: test_fixtures.ROOT_CA_CERT, Certificate: test_fixtures.ROOT_CA_CERT, PrivateKey: test_fixtures.ROOT_CA_PRIV},
 			)
 			int := credentials.NewCertificate(
 				"int-ca",
-				values.Certificate{Ca: test_fixtures.INT_CA, Certificate: test_fixtures.INT_CERT, PrivateKey: test_fixtures.INT_PRIV},
+				values.Certificate{Ca: test_fixtures.ROOT_CA_CERT, Certificate: test_fixtures.INT_CERT, PrivateKey: test_fixtures.INT_PRIV},
 			)
 			leaf := credentials.NewCertificate(
 				"leaf-cert",
-				values.Certificate{Ca: test_fixtures.SIGNED_BY_INT_LEAF_CA, Certificate: test_fixtures.SIGNED_BY_INT_LEAF_CERT, PrivateKey: test_fixtures.SIGNED_BY_INT_LEAF_PRIV},
+				values.Certificate{Ca: test_fixtures.INT_CERT, Certificate: test_fixtures.SIGNED_BY_INT_LEAF_CERT, PrivateKey: test_fixtures.SIGNED_BY_INT_LEAF_PRIV},
 			)
 
 			certs, err := parser.FindAndSetSigningCA([]credentials2.Certificate{int, leaf, root})
