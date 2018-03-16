@@ -50,7 +50,7 @@ var _ = Describe("Migrate", func() {
 	Context("Successful", func() {
 		BeforeEach(func() {
 			credhubServer.RouteToHandler("PUT", "/api/v1/data", ghttp.CombineHandlers(
-				ghttp.RespondWith(http.StatusOK, nil),
+				ghttp.RespondWith(http.StatusOK, "{}"),
 				saveRequestBody,
 			))
 		})
@@ -69,7 +69,11 @@ var _ = Describe("Migrate", func() {
 			Eventually(session).Should(Exit(0))
 			stdout := string(session.Out.Contents())
 			Expect(stdout).Should(ContainSubstring("Planning to migrate 2 passwords, 2 certificates, 1 RSA key, and 1 SSH key (6 credentials total)."))
-			Expect(stdout).Should(ContainSubstring("Successfully migrated all credentials."))
+			Expect(stdout).Should(ContainSubstring("Finished migrating passwords: 2 succeeded, 0 failed."))
+			Expect(stdout).Should(ContainSubstring("Finished migrating certificates: 2 succeeded, 0 failed."))
+			Expect(stdout).Should(ContainSubstring("Finished migrating RSA keys: 1 succeeded, 0 failed."))
+			Expect(stdout).Should(ContainSubstring("Finished migrating SSH keys: 1 succeeded, 0 failed."))
+			Expect(stdout).Should(ContainSubstring("Finished migrating credentials: 6 succeeded, 0 failed."))
 
 			rsaJson, err := json.Marshal(values.SSH{PublicKey: test_fixtures.RSA_PUB, PrivateKey: test_fixtures.RSA_PRIV})
 			Expect(err).ToNot(HaveOccurred())

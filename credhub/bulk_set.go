@@ -6,29 +6,49 @@ import (
 	"github.com/cloudfoundry-incubator/credhub-cli/credhub"
 )
 
-func BulkSet(credentials *credentials.Credentials, credHubClient CredHubClient) error {
+func BulkSet(credentials *credentials.Credentials, credHubClient CredHubClient, observer BulkSetObserver) error {
 	mode := credhub.Overwrite
+
+	observer.BeginBulkSet(
+		len(credentials.Passwords),
+		len(credentials.Certificates),
+		len(credentials.RsaKeys),
+		len(credentials.SshKeys),
+	)
 	for _, pass := range credentials.Passwords {
-		credHubClient.SetPassword(pass.Name, pass.Value, mode)
+		if _, err := credHubClient.SetPassword(pass.Name, pass.Value, mode); err != nil {
+			observer.FailPasswordSet(pass.Name, err)
+		}
 	}
+	observer.EndPasswordsSet()
 
 	for _, cert := range credentials.Certificates {
-		credHubClient.SetCertificate(cert.Name, cert.Value, mode)
+		if _, err := credHubClient.SetCertificate(cert.Name, cert.Value, mode); err != nil {
+			observer.FailCertificateSet(cert.Name, err)
+		}
 	}
+	observer.EndCertificatesSet()
 
 	for _, rsa := range credentials.RsaKeys {
-		credHubClient.SetRSA(rsa.Name, rsa.Value, mode)
+		if _, err := credHubClient.SetRSA(rsa.Name, rsa.Value, mode); err != nil {
+			observer.FailRsaKeySet(rsa.Name, err)
+		}
 	}
+	observer.EndRsaKeysSet()
 
 	for _, ssh := range credentials.SshKeys {
-		credHubClient.SetSSH(
+		_, err := credHubClient.SetSSH(
 			ssh.Name,
 			values.SSH{
 				PublicKey:  ssh.Value.PublicKey,
 				PrivateKey: ssh.Value.PrivateKey,
 			},
 			mode)
+		if err != nil {
+			observer.FailSshKeySet(ssh.Name, err)
+		}
 	}
+	observer.EndSshKeysSet()
 
-	return nil
+	return observer.EndBulkSet()
 }

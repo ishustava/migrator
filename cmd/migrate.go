@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	credhubClient "github.com/cloudfoundry-incubator/credhub-cli/credhub"
 	"github.com/cloudfoundry-incubator/credhub-cli/commands"
 	"github.com/cloudfoundry-incubator/credhub-cli/credhub/auth"
@@ -9,7 +8,7 @@ import (
 	"io/ioutil"
 	"github.com/ishustava/migrator/parser"
 	"github.com/ishustava/migrator/credhub"
-	"github.com/ishustava/migrator/credentials"
+	"os"
 )
 
 type MigrateCommand struct {
@@ -61,36 +60,5 @@ func (cmd MigrateCommand) Execute([]string) error {
 		return err
 	}
 
-	printPlan(credentials)
-
-	err = credhub.BulkSet(credentials, ch)
-	if err == nil {
-		fmt.Println("Successfully migrated all credentials.")
-	}
-
-	return err
-}
-
-func pluralizeIfNecessary(count int, word string) string {
-	if count != 1 {
-		return word + "s"
-	}
-	return word
-}
-
-func printPlan(credentials *credentials.Credentials) {
-	numPasswords := len(credentials.Passwords)
-	numCertificates := len(credentials.Certificates)
-	numRSAKeys := len(credentials.RsaKeys)
-	numSSHKeys := len(credentials.SshKeys)
-	total := numPasswords + numCertificates + numRSAKeys + numSSHKeys
-
-	fmt.Printf(
-		"Planning to migrate %d %s, %d %s, %d %s, and %d %s (%d %s total).\n",
-		numPasswords, pluralizeIfNecessary(numPasswords, "password"),
-		numCertificates, pluralizeIfNecessary(numCertificates, "certificate"),
-		numRSAKeys, pluralizeIfNecessary(numRSAKeys, "RSA key"),
-		numSSHKeys, pluralizeIfNecessary(numSSHKeys, "SSH key"),
-		total, pluralizeIfNecessary(total, "credential"),
-	)
+	return credhub.BulkSet(credentials, ch, credhub.NewBulkSetObserver(os.Stdout))
 }
