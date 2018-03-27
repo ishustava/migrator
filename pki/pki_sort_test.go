@@ -1,4 +1,4 @@
-package parser_test
+package pki_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -7,11 +7,11 @@ import (
 	"github.com/cloudfoundry-incubator/credhub-cli/credhub/credentials/values"
 	credentials2 "github.com/cloudfoundry-incubator/credhub-cli/credhub/credentials"
 	"github.com/ishustava/migrator/test_fixtures"
-	"github.com/ishustava/migrator/parser"
 	"errors"
+	"github.com/ishustava/migrator/pki"
 )
 
-var _ = Describe("CA Finder", func() {
+var _ = Describe("Sort Certificates By CA", func() {
 	Context("with a root ca", func() {
 		It("sets the ca name of the signer on the signee", func() {
 			ca := credentials.NewCertificate(
@@ -27,8 +27,8 @@ var _ = Describe("CA Finder", func() {
 				values.Certificate{Ca: test_fixtures.SIGNED_BY_ROOT_LEAF2_CA, Certificate: test_fixtures.SIGNED_BY_ROOT_LEAF2_CERT, PrivateKey: test_fixtures.SIGNED_BY_ROOT_LEAF2_PRIV},
 			)
 
-			certs, err := parser.FindAndSetSigningCA([]credentials2.Certificate{cert1, ca, cert2})
-			Expect(err).ToNot(HaveOccurred())
+			certs := []credentials2.Certificate{cert1, ca, cert2}
+			pki.Sort(certs)
 
 			resultingCa, err := findCertByName(certs, "root-ca")
 			Expect(err).ToNot(HaveOccurred())
@@ -61,8 +61,8 @@ var _ = Describe("CA Finder", func() {
 				values.Certificate{Ca: test_fixtures.INT_CERT, Certificate: test_fixtures.SIGNED_BY_INT_LEAF_CERT, PrivateKey: test_fixtures.SIGNED_BY_INT_LEAF_PRIV},
 			)
 
-			certs, err := parser.FindAndSetSigningCA([]credentials2.Certificate{int, leaf, root})
-			Expect(err).ToNot(HaveOccurred())
+			certs := []credentials2.Certificate{int, leaf, root}
+			pki.Sort(certs)
 
 			foundRootCa, err := findCertByName(certs, "root-ca")
 			Expect(err).ToNot(HaveOccurred())

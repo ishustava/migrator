@@ -9,6 +9,7 @@ import (
 	"github.com/ishustava/migrator/parser"
 	"github.com/ishustava/migrator/credhub"
 	"os"
+	"github.com/ishustava/migrator/pki"
 )
 
 type MigrateCommand struct {
@@ -35,15 +36,13 @@ func (cmd MigrateCommand) Execute([]string) error {
 	}
 
 	varsStore = parser.AddBoshNamespacing(varsStore, cmd.DirectorName, cmd.DeploymentName)
+
 	credentials, err := parser.ParseCredentials(varsStore)
 	if err != nil {
 		return err
 	}
 
-	credentials.Certificates, err = parser.FindAndSetSigningCA(credentials.Certificates)
-	if err != nil {
-		return err
-	}
+	pki.Sort(credentials.Certificates)
 
 	caCerts, err := commands.ReadOrGetCaCerts(cmd.CaCerts)
 	if err != nil {
