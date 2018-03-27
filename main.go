@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"runtime/debug"
-	"os"
-	"github.com/jessevdk/go-flags"
 	"github.com/ishustava/migrator/cmd"
+	"github.com/jessevdk/go-flags"
+	"os"
+	"runtime/debug"
 )
 
 func main() {

@@ -11,8 +11,7 @@ type pki []*pkiElement
 
 type pkiElement struct {
 	certificate credentials.Certificate
-
-	signer *pkiElement
+	signer      *pkiElement
 }
 
 func Sort(certificates []credentials.Certificate) {
@@ -21,7 +20,7 @@ func Sort(certificates []credentials.Certificate) {
 	for i, cert := range certificates {
 		pkiElements[i] = &pkiElement{
 			certificate: cert,
-			signer: findSigner(cert, remove(certificates, i)),
+			signer:      findSigner(cert, remove(certificates, i)),
 		}
 	}
 
@@ -63,8 +62,8 @@ func findSigner(certificate credentials.Certificate, possibleCAs []credentials.C
 		roots.AddCert(parsedPossibleCA)
 		if _, err := parsedCertificate.Verify(x509.VerifyOptions{Roots: roots, KeyUsages: []x509.ExtKeyUsage{x509.ExtKeyUsageAny}}); err == nil {
 			return &pkiElement{
-				certificate:   possibleCA,
-				signer: findSigner(possibleCA, remove(possibleCAs, i)),
+				certificate: possibleCA,
+				signer:      findSigner(possibleCA, remove(possibleCAs, i)),
 			}
 		}
 	}
