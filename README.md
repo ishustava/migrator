@@ -30,6 +30,13 @@ Help Options:
                              [$CREDHUB_CA_CERT]
 ```
 
+If you used [bosh-bootloader](https://github.com/cloudfoundry/bosh-bootloader) (a.k.a. `bbl`) to deploy your BOSH environment with CredHub (which is the default if using `bbl` 5.0 and above), `bbl` makes it really easy to set those `$CREDHUB_*` environment variables.  To do a migration, just run the following from your `bbl` state directory:
+
+```
+$ eval "$(bbl print-env)"
+$ migrator migrate -v <PATH_TO_VARS_STORE_FILE> -e <DIRECTOR_NAME> -d <DEPLOYMENT_NAME>
+```
+
 ### Purpose
 
 Modern BOSH deployment manifests support `variables` declarations which allow for automatic generation of credentials, including hierarchies of certificates, so that the operator doesn't have to bear that toil.  If your BOSH Director is not integrated with CredHub, the only way to leverage this capability is to have the BOSH CLI generate a local file (called a "vars-store") full of credentials, which you then need to pass to your `bosh deploy` command.  A better, more secure way to do this is to connect your Director to CredHub so that it can securely generate and store all those credentials.  A problem arises if you have already deployed something with locally generated credentials, and want to migrate to a CredHub based deployment.  This is where `migrator` comes in!
